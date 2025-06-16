@@ -1,0 +1,11 @@
+/build
+/.idea
+.gradle
+*.iml
+*.log
+/out
+*.class
+*.jar
+.env
+*.properties
+secrets/
