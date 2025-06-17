@@ -4,12 +4,14 @@ import com.example.mockbank.application.dto.*;
 import com.example.mockbank.domain.account.entity.Account;
 import com.example.mockbank.domain.account.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AccountService {
@@ -50,4 +52,16 @@ public class AccountService {
                 new TransactionResponse("WITHDRAWAL", new BigDecimal("30000"), LocalDateTime.now().minusDays(1))
         );
     }
+
+    public void createAccountFromEvent(AccountCreatedEvent event) {
+        Account account = Account.builder()
+                .userId(event.getUserId())
+                .createdAt(LocalDateTime.now())
+                .balance(BigDecimal.ZERO)
+                .build();
+
+        accountRepository.save(account);
+        log.info("계좌 생성 완료 for userId={}", event.getUserId());
+    }
+
 }
