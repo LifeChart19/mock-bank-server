@@ -2,6 +2,7 @@ package com.example.mockbank.adapter.in.sqs;
 
 import com.example.mockbank.application.dto.AccountCreatedEvent;
 import com.example.mockbank.application.service.AccountService;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -41,10 +42,17 @@ public class AwsSqsListener {
                 for (Message message : messages) {
                     try {
                         log.info("📨 SQS 수신: {}", message.body());
-                        AccountCreatedEvent event = objectMapper.readValue(message.body(), AccountCreatedEvent.class);
+
+                        // 1. SQS → SNS 구조의 래핑 메시지 처리
+                        JsonNode root = objectMapper.readTree(message.body());
+                        String innerJson = root.get("Message").asText(); // 내부 JSON 문자열 꺼냄
+
+                        // 2. 실제 비즈니스 DTO로 파싱
+                        AccountCreatedEvent event = objectMapper.readValue(innerJson, AccountCreatedEvent.class);
                         accountService.createAccountFromEvent(event);
+
                     } catch (Exception e) {
-                        log.error("SQS 메시지 처리 실패", e);
+                        log.warn("SQS 메시지 처리 실패 - 무시된 메시지: {}", message.body(), e);
                     }
                 }
             }

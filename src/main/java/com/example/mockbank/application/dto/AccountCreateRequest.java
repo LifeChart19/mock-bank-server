@@ -6,6 +6,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class AccountCreateRequest {
-    private String accountNumber;
     private Long userId;
+    private String userName;
 }
