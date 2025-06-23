@@ -20,18 +20,13 @@ public class AccountController {
         return ResponseEntity.ok(accountService.createAccount(request));
     }
 
-    @GetMapping("/{accountNumber}")
-    public ResponseEntity<AccountResponse> getAccount(@PathVariable String accountNumber) {
-        return ResponseEntity.ok(accountService.getAccount(accountNumber));
+    @GetMapping("/{userId}")
+    public ResponseEntity<AccountResponse> getAccount(@PathVariable Long userId) {
+        return ResponseEntity.ok(accountService.getAccount(userId));
     }
 
-    @GetMapping("/{accountNumber}/balance")
-    public ResponseEntity<BalanceResponse> getBalance(@PathVariable String accountNumber) {
-        return ResponseEntity.ok(accountService.getBalance(accountNumber));
-    }
-
-    @GetMapping("/{accountNumber}/transactions")
-    public ResponseEntity<List<TransactionResponse>> getTransactions(@PathVariable String accountNumber) {
-        return ResponseEntity.ok(accountService.getTransactions(accountNumber));
+    @GetMapping("/{userId}/transactions")
+    public ResponseEntity<List<TransactionResponse>> getTransactions(@PathVariable Long userId) {
+        return ResponseEntity.ok(accountService.getTransactions(userId));
     }
 }

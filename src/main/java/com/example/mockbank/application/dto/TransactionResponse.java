@@ -1,5 +1,6 @@
 package com.example.mockbank.application.dto;
 
+import com.example.mockbank.domain.account.entity.Transaction;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -9,7 +10,22 @@ import java.time.LocalDateTime;
 @Getter
 @AllArgsConstructor
 public class TransactionResponse {
-    private String type; // "DEPOSIT" or "WITHDRAWAL"
+    private Long id;
     private BigDecimal amount;
-    private LocalDateTime time;
+    private String type;
+    private LocalDateTime createdAt;
+    private String description;
+
+    public static TransactionResponse from(Transaction t) {
+        return new TransactionResponse(
+                t.getId(),
+                t.getAmount(),
+                t.getType().name(),
+                t.getCreatedAt(),
+                t.getDescription()
+        );
+    }
 }
+
+
+

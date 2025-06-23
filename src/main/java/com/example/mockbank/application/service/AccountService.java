@@ -29,25 +29,18 @@ public class AccountService {
         return AccountResponse.from(saved);
     }
 
-    public AccountResponse getAccount(String accountNumber) {
-        Account account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new IllegalArgumentException("Account not found"));
-
+    public AccountResponse getAccount(Long userId) {
+        Account account = accountRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
         return AccountResponse.from(account);
     }
 
-    public BalanceResponse getBalance(String accountNumber) {
-        Account account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+    public List<TransactionResponse> getTransactions(Long userId) {
+        Account account = accountRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
 
-        return new BalanceResponse(account.getAccountNumber(), account.getBalance());
-    }
-
-    public List<TransactionResponse> getTransactions(String accountNumber) {
-        // 실제 DB 저장은 안 하지만, 가상의 거래내역 생성
-        return List.of(
-                new TransactionResponse("DEPOSIT", new BigDecimal("100000"), LocalDateTime.now().minusDays(2)),
-                new TransactionResponse("WITHDRAWAL", new BigDecimal("30000"), LocalDateTime.now().minusDays(1))
-        );
+        return account.getTransactions().stream()
+                .map(TransactionResponse::from)
+                .toList();
     }
 }

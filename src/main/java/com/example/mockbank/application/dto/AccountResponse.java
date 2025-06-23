@@ -10,17 +10,18 @@ import java.time.LocalDateTime;
 @Getter
 @AllArgsConstructor
 public class AccountResponse {
-    private String accountNumber;
+    private Long accountId;
     private Long userId;
+    private String accountNumber;
     private BigDecimal balance;
-    private LocalDateTime createdAt;
 
     public static AccountResponse from(Account account) {
         return new AccountResponse(
-                account.getAccountNumber(),
+                account.getId(),
                 account.getUserId(),
-                account.getBalance(),
-                account.getCreatedAt()
+                account.getAccountNumber(),
+                account.getBalance()
         );
     }
 }
+
