@@ -1,4 +1,4 @@
-package com.example.mockbank.adapter.in.sqs;
+package com.example.mockbank.adapter.in.web.sqs;
 
 import com.example.mockbank.application.dto.AccountCreatedEvent;
 import com.example.mockbank.application.service.AccountService;
