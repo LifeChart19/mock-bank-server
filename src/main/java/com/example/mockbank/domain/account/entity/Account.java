@@ -35,4 +35,15 @@ public class Account {
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Transaction> transactions = new ArrayList<>();
 
+    public void deposit(Long amount) {
+        this.balance = this.balance.add(BigDecimal.valueOf(amount));
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void withdraw(Long amount) {
+        this.balance = this.balance.subtract(BigDecimal.valueOf(amount));
+        this.updatedAt = LocalDateTime.now();
+    }
+
+
 }
