@@ -7,6 +7,9 @@ import com.example.mockbank.domain.account.repository.AccountRepository;
 import com.example.mockbank.domain.account.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.example.mockbank.common.enums.ErrorCode;
+import com.example.mockbank.common.exception.CustomException;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -33,35 +36,33 @@ public class AccountService {
     }
 
     public AccountResponse deposit(Long userId, DepositRequest request) {
-        // 1. 계좌 조회
         Account account = accountRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
 
-        // 2. 금액 업데이트
         account.deposit(request.getAmount());
         accountRepository.save(account);
 
-        // 3. 트랜잭션 기록 생성 (optional)
         Transaction tx = Transaction.builder()
                 .account(account)
                 .amount(BigDecimal.valueOf(request.getAmount()))
                 .type(Transaction.TransactionType.DEPOSIT)
                 .memo(request.getMemo())
-                .description("입금") // 필요하면
+                .description("입금")
                 .createdAt(LocalDateTime.now())
                 .build();
         transactionRepository.save(tx);
 
-        // 4. 반환
         return AccountResponse.from(account);
     }
 
+
     public AccountResponse withdraw(Long userId, WithdrawRequest request) {
         Account account = accountRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
 
-        if (account.getBalance().longValue() < request.getAmount()) {
-            throw new IllegalArgumentException("Insufficient balance");
+        BigDecimal withdrawAmount = BigDecimal.valueOf(request.getAmount());
+        if (account.getBalance().compareTo(withdrawAmount) < 0) {
+            throw new CustomException(ErrorCode.INSUFFICIENT_BALANCE);
         }
 
         account.withdraw(request.getAmount());
@@ -69,7 +70,7 @@ public class AccountService {
 
         Transaction tx = Transaction.builder()
                 .account(account)
-                .amount(BigDecimal.valueOf(request.getAmount()))
+                .amount(withdrawAmount)
                 .type(Transaction.TransactionType.WITHDRAWAL)
                 .memo(request.getMemo())
                 .description("출금")
@@ -84,13 +85,13 @@ public class AccountService {
 
     public AccountResponse getAccount(Long userId) {
         Account account = accountRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
         return AccountResponse.from(account);
     }
 
     public List<TransactionResponse> getTransactions(Long userId) {
         Account account = accountRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
 
         return account.getTransactions().stream()
                 .map(TransactionResponse::from)

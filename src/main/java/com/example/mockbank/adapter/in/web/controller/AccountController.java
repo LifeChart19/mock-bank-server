@@ -2,6 +2,8 @@ package com.example.mockbank.adapter.in.web.controller;
 
 import com.example.mockbank.application.dto.*;
 import com.example.mockbank.application.service.AccountService;
+import com.example.mockbank.common.enums.SuccessCode;
+import com.example.mockbank.common.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,32 +19,43 @@ public class AccountController {
     private final AccountService accountService;
 
     @PostMapping
-    public ResponseEntity<AccountResponse> createAccount(@RequestBody AccountCreateRequest request) {
-        return ResponseEntity.ok(accountService.createAccount(request));
-    }
-
-    @GetMapping("/{userId}")
-    public ResponseEntity<AccountResponse> getAccount(@PathVariable Long userId) {
-        return ResponseEntity.ok(accountService.getAccount(userId));
-    }
-
-    @GetMapping("/{userId}/transactions")
-    public ResponseEntity<List<TransactionResponse>> getTransactions(@PathVariable Long userId) {
-        return ResponseEntity.ok(accountService.getTransactions(userId));
+    public ResponseEntity<ApiResponse<AccountResponse>> createAccount(@RequestBody AccountCreateRequest request) {
+        return ResponseEntity
+                .status(SuccessCode.CREATE_USER_SUCCESS.getStatus())
+                .body(ApiResponse.onSuccess(SuccessCode.CREATE_USER_SUCCESS, accountService.createAccount(request)));
     }
 
     @PostMapping("/{userId}/deposit")
-    public ResponseEntity<AccountResponse> deposit(
+    public ResponseEntity<ApiResponse<AccountResponse>> deposit(
             @PathVariable Long userId,
             @Valid @RequestBody DepositRequest request) {
-        return ResponseEntity.ok(accountService.deposit(userId, request));
+        return ResponseEntity
+                .status(SuccessCode.DEPOSIT_SUCCESS.getStatus())
+                .body(ApiResponse.onSuccess(SuccessCode.DEPOSIT_SUCCESS, accountService.deposit(userId, request)));
     }
 
     @PostMapping("/{userId}/withdraw")
-    public ResponseEntity<AccountResponse> withdraw(
+    public ResponseEntity<ApiResponse<AccountResponse>> withdraw(
             @PathVariable Long userId,
             @Valid @RequestBody WithdrawRequest request) {
-        return ResponseEntity.ok(accountService.withdraw(userId, request));
+        return ResponseEntity
+                .status(SuccessCode.WITHDRAW_SUCCESS.getStatus())
+                .body(ApiResponse.onSuccess(SuccessCode.WITHDRAW_SUCCESS, accountService.withdraw(userId, request)));
     }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<ApiResponse<AccountResponse>> getAccount(@PathVariable Long userId) {
+        return ResponseEntity
+                .status(SuccessCode.GET_ACCOUNT_SUCCESS.getStatus())
+                .body(ApiResponse.onSuccess(SuccessCode.GET_ACCOUNT_SUCCESS, accountService.getAccount(userId)));
+    }
+
+    @GetMapping("/{userId}/transactions")
+    public ResponseEntity<ApiResponse<List<TransactionResponse>>> getTransactions(@PathVariable Long userId) {
+        return ResponseEntity
+                .status(SuccessCode.GET_TRANSACTIONS_SUCCESS.getStatus())
+                .body(ApiResponse.onSuccess(SuccessCode.GET_TRANSACTIONS_SUCCESS, accountService.getTransactions(userId)));
+    }
+
 
 }
