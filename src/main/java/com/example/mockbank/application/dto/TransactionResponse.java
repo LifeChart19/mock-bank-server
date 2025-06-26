@@ -15,6 +15,7 @@ public class TransactionResponse {
     private String type;
     private LocalDateTime createdAt;
     private String description;
+    private String memo;
 
     public static TransactionResponse from(Transaction t) {
         return new TransactionResponse(
@@ -22,7 +23,8 @@ public class TransactionResponse {
                 t.getAmount(),
                 t.getType().name(),
                 t.getCreatedAt(),
-                t.getDescription()
+                t.getDescription(),
+                t.getMemo()
         );
     }
 }
