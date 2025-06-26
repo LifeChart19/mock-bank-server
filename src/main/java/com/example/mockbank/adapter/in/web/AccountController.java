@@ -1,4 +1,4 @@
-package com.example.mockbank.adapter.in.web.controller;
+package com.example.mockbank.adapter.in.web;
 
 import com.example.mockbank.application.dto.*;
 import com.example.mockbank.application.service.AccountService;

@@ -1,6 +1,5 @@
 package com.example.mockbank.domain.account.entity;
 
-import com.example.mockbank.domain.account.entity.Transaction;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,6 +31,7 @@ public class Account {
 
     private LocalDateTime updatedAt;
 
+    @Builder.Default
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Transaction> transactions = new ArrayList<>();
 
