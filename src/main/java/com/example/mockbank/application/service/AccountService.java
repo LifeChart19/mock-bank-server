@@ -26,6 +26,7 @@ public class AccountService {
         Account account = Account.builder()
                 .accountNumber(request.getAccountNumber())
                 .userId(request.getUserId())
+                .userName(request.getUserName())
                 .balance(BigDecimal.ZERO)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
