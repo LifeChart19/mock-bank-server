@@ -2,6 +2,7 @@ package com.example.mockbank.adapter.in.web.controller;
 
 import com.example.mockbank.application.dto.*;
 import com.example.mockbank.application.service.AccountService;
+import com.example.mockbank.common.enums.ErrorCode;
 import com.example.mockbank.common.enums.SuccessCode;
 import com.example.mockbank.common.response.ApiResponse;
 import jakarta.validation.Valid;
@@ -44,15 +45,30 @@ public class AccountController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<ApiResponse<AccountResponse>> getAccount(@PathVariable Long userId) {
-        return ResponseEntity
+    public ResponseEntity<ApiResponse<AccountResponse>> getAccount(
+            @PathVariable Long userId,
+            @RequestHeader(value = "Authorization", required = false) String authorization
+    ) {
+        // 1. 인증 검사
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            return ResponseEntity.status(401)
+                    .body(ApiResponse.onError(ErrorCode.UNAUTHORIZED));
+        }
+        String token = authorization.substring(7);return ResponseEntity
                 .status(SuccessCode.GET_ACCOUNT_SUCCESS.getStatus())
                 .body(ApiResponse.onSuccess(SuccessCode.GET_ACCOUNT_SUCCESS, accountService.getAccount(userId)));
     }
 
     @GetMapping("/{userId}/transactions")
-    public ResponseEntity<ApiResponse<List<TransactionResponse>>> getTransactions(@PathVariable Long userId) {
-        return ResponseEntity
+    public ResponseEntity<ApiResponse<List<TransactionResponse>>> getTransactions(
+            @PathVariable Long userId,
+            @RequestHeader(value = "Authorization", required = false) String authorization
+    ) {
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            return ResponseEntity.status(401)
+                    .body(ApiResponse.onError(ErrorCode.UNAUTHORIZED));
+        }
+        String token = authorization.substring(7);return ResponseEntity
                 .status(SuccessCode.GET_TRANSACTIONS_SUCCESS.getStatus())
                 .body(ApiResponse.onSuccess(SuccessCode.GET_TRANSACTIONS_SUCCESS, accountService.getTransactions(userId)));
     }
