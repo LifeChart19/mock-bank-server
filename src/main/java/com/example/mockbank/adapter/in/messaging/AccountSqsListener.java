@@ -61,7 +61,7 @@ public class AccountSqsListener {
         });
     }
 
-    private void handleMessage(Message message) {
+    void handleMessage(Message message) {
         log.info("[AccountSqsListener] 수신 메시지: {}", message.body());
         try {
             var tree = objectMapper.readTree(message.body());
