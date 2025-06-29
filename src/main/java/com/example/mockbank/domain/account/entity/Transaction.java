@@ -16,14 +16,19 @@ public class Transaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false)
     private Long id;
 
+    @Column(nullable = false)
     private BigDecimal amount;
 
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
     private String description;
 
+    @Column(nullable = true)
     private String memo; // 입출금 메모
 
     @ManyToOne(fetch = FetchType.LAZY)
