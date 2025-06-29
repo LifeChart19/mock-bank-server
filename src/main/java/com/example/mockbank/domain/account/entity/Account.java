@@ -42,13 +42,13 @@ public class Account {
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Transaction> transactions = new ArrayList<>();
 
-    public void deposit(Long amount) {
-        this.balance = this.balance.add(BigDecimal.valueOf(amount));
+    public void deposit(BigDecimal amount) {
+        this.balance = this.balance.add(amount);
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void withdraw(Long amount) {
-        this.balance = this.balance.subtract(BigDecimal.valueOf(amount));
+    public void withdraw(BigDecimal amount) {
+        this.balance = this.balance.subtract(amount);
         this.updatedAt = LocalDateTime.now();
     }
 
