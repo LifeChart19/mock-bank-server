@@ -50,7 +50,7 @@ public class AccountService {
 
         Transaction tx = Transaction.builder()
                 .account(account)
-                .amount(BigDecimal.valueOf(request.getAmount()))
+                .amount(request.getAmount())
                 .type(TransactionType.DEPOSIT)
                 .memo(request.getMemo())
                 .description("입금")
@@ -66,7 +66,7 @@ public class AccountService {
         Account account = accountRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
 
-        BigDecimal withdrawAmount = BigDecimal.valueOf(request.getAmount());
+        BigDecimal withdrawAmount = request.getAmount();
         if (account.getBalance().compareTo(withdrawAmount) < 0) {
             throw new CustomException(ErrorCode.INSUFFICIENT_BALANCE);
         }
