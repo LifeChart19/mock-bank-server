@@ -10,11 +10,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.example.mockbank.common.enums.ErrorCode;
 import com.example.mockbank.common.exception.CustomException;
+import org.springframework.transaction.annotation.Transactional;
 
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +25,7 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
 
+    @Transactional
     public AccountResponse createAccount(AccountCreateRequest request) {
         Account account = Account.builder()
                 .accountNumber(request.getAccountNumber())
@@ -37,6 +40,7 @@ public class AccountService {
         return AccountResponse.from(saved);
     }
 
+    @Transactional
     public AccountResponse deposit(Long userId, DepositRequest request) {
         Account account = accountRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
@@ -57,7 +61,7 @@ public class AccountService {
         return AccountResponse.from(account);
     }
 
-
+    @Transactional
     public AccountResponse withdraw(Long userId, WithdrawRequest request) {
         Account account = accountRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
@@ -84,13 +88,14 @@ public class AccountService {
     }
 
 
-
+    @Transactional(readOnly = true)
     public AccountResponse getAccount(Long userId) {
         Account account = accountRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
         return AccountResponse.from(account);
     }
 
+    @Transactional(readOnly = true)
     public List<TransactionResponse> getTransactions(Long userId) {
         Account account = accountRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));

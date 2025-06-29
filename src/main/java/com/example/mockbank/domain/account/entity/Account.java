@@ -17,18 +17,25 @@ public class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false)
     private Long id;
 
+    @Column(nullable = false)
     private String accountNumber; // 고유 계좌 번호
 
+    @Column(nullable = false)
     private Long userId;
 
+    @Column(nullable = false)
     private String userName;
 
+    @Column(nullable = false)
     private BigDecimal balance;
 
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     @Builder.Default

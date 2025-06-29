@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Object>> handleValidationException(MethodArgumentNotValidException ex) {
-        ErrorCode errorCode = ErrorCode.INVALID_AMOUNT; // 혹은 별도 Validation 에러코드
+        ErrorCode errorCode = ErrorCode.INVALID_AMOUNT;
         return ResponseEntity
                 .status(errorCode.getStatus())
                 .body(ApiResponse.onError(errorCode));
@@ -28,7 +28,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleAll(Exception ex) {
-        ErrorCode errorCode = ErrorCode.UNAUTHORIZED; // 혹은 공통 에러코드
+        ErrorCode errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
         return ResponseEntity
                 .status(errorCode.getStatus())
                 .body(ApiResponse.onError(errorCode));
