@@ -1,5 +1,6 @@
 package com.example.mockbank.domain.account.entity;
 
+import com.example.mockbank.domain.account.enums.TransactionType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,12 +18,7 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
-
     private BigDecimal amount;
-
-    @Enumerated(EnumType.STRING)
-    private TransactionType type; // DEPOSIT, WITHDRAWAL
 
     private LocalDateTime createdAt;
 
@@ -34,7 +30,6 @@ public class Transaction {
     @JoinColumn(name = "account_id")
     private Account account;
 
-    public enum TransactionType {
-        DEPOSIT, WITHDRAWAL
-    }
+    @Enumerated(EnumType.STRING)
+    private TransactionType type;
 }

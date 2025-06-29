@@ -3,6 +3,7 @@ package com.example.mockbank.application.service;
 import com.example.mockbank.application.dto.*;
 import com.example.mockbank.domain.account.entity.Account;
 import com.example.mockbank.domain.account.entity.Transaction;
+import com.example.mockbank.domain.account.enums.TransactionType;
 import com.example.mockbank.domain.account.repository.AccountRepository;
 import com.example.mockbank.domain.account.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +47,7 @@ public class AccountService {
         Transaction tx = Transaction.builder()
                 .account(account)
                 .amount(BigDecimal.valueOf(request.getAmount()))
-                .type(Transaction.TransactionType.DEPOSIT)
+                .type(TransactionType.DEPOSIT)
                 .memo(request.getMemo())
                 .description("입금")
                 .createdAt(LocalDateTime.now())
@@ -72,7 +73,7 @@ public class AccountService {
         Transaction tx = Transaction.builder()
                 .account(account)
                 .amount(withdrawAmount)
-                .type(Transaction.TransactionType.WITHDRAWAL)
+                .type(TransactionType.WITHDRAWAL)
                 .memo(request.getMemo())
                 .description("출금")
                 .createdAt(LocalDateTime.now())
