@@ -2,69 +2,106 @@ package com.example.mockbank.application.service;
 
 import com.example.mockbank.application.dto.*;
 import com.example.mockbank.domain.account.entity.Account;
+import com.example.mockbank.domain.account.entity.Transaction;
+import com.example.mockbank.domain.account.enums.TransactionType;
 import com.example.mockbank.domain.account.repository.AccountRepository;
+import com.example.mockbank.domain.account.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import com.example.mockbank.common.enums.ErrorCode;
+import com.example.mockbank.common.exception.CustomException;
+import org.springframework.transaction.annotation.Transactional;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
-@Slf4j
+
 @Service
 @RequiredArgsConstructor
 public class AccountService {
 
     private final AccountRepository accountRepository;
+    private final TransactionRepository transactionRepository;
 
-    private String generateAccountNumber() {
-        return UUID.randomUUID().toString().replace("-", "").substring(0, 10);
-    }
-
-    // 내부 공통 로직으로 계좌 생성
-    private Account createAccountInternal(Long userId, String userName) {
-        return Account.builder()
-                .accountNumber(generateAccountNumber())
-                .userId(userId)
-                .userName(userName)
+    @Transactional
+    public AccountResponse createAccount(AccountCreateRequest request) {
+        Account account = Account.builder()
+                .accountNumber(request.getAccountNumber())
+                .userId(request.getUserId())
+                .userName(request.getUserName())
                 .balance(BigDecimal.ZERO)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
-    }
 
-    // 일반 요청으로 계좌 생성
-    public AccountResponse createAccount(AccountCreateRequest request) {
-        Account account = createAccountInternal(request.getUserId(), request.getUserName());
         Account saved = accountRepository.save(account);
         return AccountResponse.from(saved);
     }
 
-    // 이벤트 기반 계좌 생성
-    public void createAccountFromEvent(AccountCreatedEvent event) {
-        Account account = createAccountInternal(event.getUserId(), event.getUserName());
-        accountRepository.save(account);
-        log.info("계좌 생성 완료 for userId={}", event.getUserId());
-    }
+    @Transactional
+    public AccountResponse deposit(Long userId, DepositRequest request) {
+        Account account = accountRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
 
-    public AccountResponse getAccount(String accountNumber) {
-        Account account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+        account.deposit(request.getAmount());
+        accountRepository.save(account);
+
+        Transaction tx = Transaction.builder()
+                .account(account)
+                .amount(request.getAmount())
+                .type(TransactionType.DEPOSIT)
+                .memo(request.getMemo())
+                .description("입금")
+                .createdAt(LocalDateTime.now())
+                .build();
+        transactionRepository.save(tx);
+
         return AccountResponse.from(account);
     }
 
-    public BalanceResponse getBalance(String accountNumber) {
-        Account account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new IllegalArgumentException("Account not found"));
-        return new BalanceResponse(account.getAccountNumber(), account.getBalance());
+    @Transactional
+    public AccountResponse withdraw(Long userId, WithdrawRequest request) {
+        Account account = accountRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
+
+        BigDecimal withdrawAmount = request.getAmount();
+        if (account.getBalance().compareTo(withdrawAmount) < 0) {
+            throw new CustomException(ErrorCode.INSUFFICIENT_BALANCE);
+        }
+
+        account.withdraw(request.getAmount());
+        accountRepository.save(account);
+
+        Transaction tx = Transaction.builder()
+                .account(account)
+                .amount(withdrawAmount)
+                .type(TransactionType.WITHDRAWAL)
+                .memo(request.getMemo())
+                .description("출금")
+                .createdAt(LocalDateTime.now())
+                .build();
+        transactionRepository.save(tx);
+
+        return AccountResponse.from(account);
     }
 
-    public List<TransactionResponse> getTransactions(String accountNumber) {
-        return List.of(
-                new TransactionResponse("DEPOSIT", new BigDecimal("100000"), LocalDateTime.now().minusDays(2)),
-                new TransactionResponse("WITHDRAWAL", new BigDecimal("30000"), LocalDateTime.now().minusDays(1))
-        );
+
+    @Transactional(readOnly = true)
+    public AccountResponse getAccount(Long userId) {
+        Account account = accountRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
+        return AccountResponse.from(account);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TransactionResponse> getTransactions(Long userId) {
+        Account account = accountRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
+
+        return account.getTransactions().stream()
+                .map(TransactionResponse::from)
+                .toList();
     }
 }
