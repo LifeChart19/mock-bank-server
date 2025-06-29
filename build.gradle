@@ -32,6 +32,10 @@ dependencies {
 
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
 
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+    testImplementation 'org.mockito:mockito-core:4.0.0'
+    testImplementation 'org.assertj:assertj-core:3.24.2'
+
 
     // AWS SNS & SQS (비동기 메시징)
     implementation platform('software.amazon.awssdk:bom:2.31.60')
