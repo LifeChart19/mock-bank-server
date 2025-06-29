@@ -4,6 +4,7 @@ import com.example.mockbank.application.dto.*;
 import com.example.mockbank.application.service.AccountService;
 import com.example.mockbank.common.enums.ErrorCode;
 import com.example.mockbank.common.enums.SuccessCode;
+import com.example.mockbank.common.exception.CustomException;
 import com.example.mockbank.common.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -49,12 +50,8 @@ public class AccountController {
             @PathVariable Long userId,
             @RequestHeader(value = "Authorization", required = false) String authorization
     ) {
-        // 1. 인증 검사
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-            return ResponseEntity.status(401)
-                    .body(ApiResponse.onError(ErrorCode.UNAUTHORIZED));
-        }
-        String token = authorization.substring(7);return ResponseEntity
+        validateAuthorizationHeader(authorization);
+        return ResponseEntity
                 .status(SuccessCode.GET_ACCOUNT_SUCCESS.getStatus())
                 .body(ApiResponse.onSuccess(SuccessCode.GET_ACCOUNT_SUCCESS, accountService.getAccount(userId)));
     }
@@ -64,14 +61,16 @@ public class AccountController {
             @PathVariable Long userId,
             @RequestHeader(value = "Authorization", required = false) String authorization
     ) {
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-            return ResponseEntity.status(401)
-                    .body(ApiResponse.onError(ErrorCode.UNAUTHORIZED));
-        }
-        String token = authorization.substring(7);return ResponseEntity
+        validateAuthorizationHeader(authorization);
+        return ResponseEntity
                 .status(SuccessCode.GET_TRANSACTIONS_SUCCESS.getStatus())
                 .body(ApiResponse.onSuccess(SuccessCode.GET_TRANSACTIONS_SUCCESS, accountService.getTransactions(userId)));
     }
 
+    private void validateAuthorizationHeader(String authorization) {
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+    }
 
 }
