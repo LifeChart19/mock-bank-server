@@ -90,8 +90,28 @@ public class AccountSqsListener {
                 .build());
     }
 
-    // 간단한 계좌번호 생성 로직 (랜덤 등)
     private String generateAccountNumber() {
-        return String.valueOf(System.currentTimeMillis()).substring(4, 13);
+        String accountNumber;
+        int tryCount = 0;
+        final int maxTry = 10;
+
+        do {
+            accountNumber = randomAccountNumber(10);
+            tryCount++;
+        } while (accountService.existsByAccountNumber(accountNumber) && tryCount < maxTry);
+
+        if (tryCount == maxTry) {
+            throw new RuntimeException("계좌번호 생성 시도 초과 (중복)");
+        }
+        return accountNumber;
+    }
+
+    private String randomAccountNumber(int length) {
+        StringBuilder sb = new StringBuilder();
+        sb.append((int) (Math.random() * 9) + 1);
+        for (int i = 1; i < length; i++) {
+            sb.append((int) (Math.random() * 10));
+        }
+        return sb.toString();
     }
 }

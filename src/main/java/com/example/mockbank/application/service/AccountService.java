@@ -104,5 +104,9 @@ public class AccountService {
                 .map(TransactionResponse::from)
                 .toList();
     }
+
+    public boolean existsByAccountNumber(String accountNumber) {
+        return accountRepository.existsByAccountNumber(accountNumber);
+    }
     //
 }
