@@ -21,7 +21,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.BDDMockito.given;
 
 class AccountServiceTest {
 
@@ -48,7 +48,7 @@ class AccountServiceTest {
         request.setUserId(1L);
         request.setUserName("테스터");
 
-        when(accountRepository.save(any(Account.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        given(accountRepository.save(any(Account.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         // when
         AccountResponse response = accountService.createAccount(request);
@@ -63,7 +63,7 @@ class AccountServiceTest {
     void deposit_success() {
         // given
         DepositRequest request = new DepositRequest();
-        request.setAmount(10000L);
+        request.setAmount(BigDecimal.valueOf(10000L));
         request.setMemo("입금메모");
 
         Account account = Account.builder()
@@ -75,8 +75,8 @@ class AccountServiceTest {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        when(accountRepository.findByUserId(1L)).thenReturn(Optional.of(account));
-        when(accountRepository.save(any(Account.class))).thenReturn(account);
+        given(accountRepository.findByUserId(1L)).willReturn(Optional.of(account));
+        given(accountRepository.save(any(Account.class))).willReturn(account);
 
         // when
         AccountResponse response = accountService.deposit(1L, request);
@@ -90,7 +90,7 @@ class AccountServiceTest {
     void withdraw_fail_insufficient_balance() {
         // given
         WithdrawRequest request = new WithdrawRequest();
-        request.setAmount(10000L);
+        request.setAmount(BigDecimal.valueOf(10000L));
         request.setMemo("출금메모");
 
         Account account = Account.builder()
@@ -102,7 +102,7 @@ class AccountServiceTest {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        when(accountRepository.findByUserId(1L)).thenReturn(Optional.of(account));
+        given(accountRepository.findByUserId(1L)).willReturn(Optional.of(account));
 
         // when & then
         assertThatThrownBy(() -> accountService.withdraw(1L, request))
@@ -113,7 +113,7 @@ class AccountServiceTest {
     @Test
     @DisplayName("계좌 조회 실패 - 계좌 없음")
     void getAccount_fail_not_found() {
-        when(accountRepository.findByUserId(1L)).thenReturn(Optional.empty());
+        given(accountRepository.findByUserId(1L)).willReturn(Optional.empty());
         assertThatThrownBy(() -> accountService.getAccount(1L))
                 .isInstanceOf(CustomException.class)
                 .hasMessageContaining(ErrorCode.ACCOUNT_NOT_FOUND.getMessage());
@@ -132,7 +132,7 @@ class AccountServiceTest {
                 .build();
 
         // 거래 내역 없는 케이스
-        when(accountRepository.findByUserId(1L)).thenReturn(Optional.of(account));
+        given(accountRepository.findByUserId(1L)).willReturn(Optional.of(account));
         // account.getTransactions()가 null 또는 비어있는 경우라면,
         // Account Entity에서 초기화(List.of() 또는 new ArrayList<>())가 되어있어야 함
 
@@ -140,5 +140,4 @@ class AccountServiceTest {
         assertThat(result).isNotNull();
         assertThat(result).isEmpty();
     }
-
 }

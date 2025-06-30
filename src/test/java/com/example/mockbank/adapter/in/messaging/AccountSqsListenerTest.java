@@ -3,7 +3,6 @@ package com.example.mockbank.adapter.in.messaging;
 import com.example.mockbank.application.dto.AccountCreateRequest;
 import com.example.mockbank.application.service.AccountService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,9 +34,8 @@ class AccountSqsListenerTest {
         String json = "{\"userId\":10,\"userName\":\"테스터10\"}";
         Message message = Message.builder().body(json).build();
 
-        // ObjectMapper.readTree(json) → JsonNode
-        var jsonNode = new ObjectMapper().readTree(json); // 실제 ObjectMapper로 만듦(테스트용)
-        when(objectMapper.readTree(json)).thenReturn(jsonNode);
+        var jsonNode = new ObjectMapper().readTree(json);
+        given(objectMapper.readTree(json)).willReturn(jsonNode);
 
         // when
         listener.handleMessage(message);
@@ -74,7 +72,7 @@ class AccountSqsListenerTest {
         Message message = Message.builder().body(json).build();
         var jsonNode = new ObjectMapper().readTree(json);
 
-        when(objectMapper.readTree(json)).thenReturn(jsonNode);
+        given(objectMapper.readTree(json)).willReturn(jsonNode);
 
         listener.handleMessage(message);
 
@@ -89,11 +87,10 @@ class AccountSqsListenerTest {
     void handleMessage_jsonParseError() throws Exception {
         // given
         Message message = Message.builder().body("invalid-json").build();
-        when(objectMapper.readTree(any(String.class))).thenThrow(new RuntimeException("파싱에러"));
+        given(objectMapper.readTree(any(String.class))).willThrow(new RuntimeException("파싱에러"));
 
         // when/then: 예외 발생해도 서비스 죽지 않음, 로그만 남음
         listener.handleMessage(message);
         verify(accountService, never()).createAccount(any());
     }
 }
-
