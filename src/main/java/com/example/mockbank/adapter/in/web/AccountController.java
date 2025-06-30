@@ -21,7 +21,7 @@ public class AccountController {
     private final AccountService accountService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<AccountResponse>> createAccount(@RequestBody AccountCreateRequest request) {
+    public ResponseEntity<ApiResponse<AccountResponse>> createAccount(@Valid @RequestBody AccountCreateRequest request) {
         return ResponseEntity
                 .status(SuccessCode.CREATE_USER_SUCCESS.getStatus())
                 .body(ApiResponse.onSuccess(SuccessCode.CREATE_USER_SUCCESS, accountService.createAccount(request)));
