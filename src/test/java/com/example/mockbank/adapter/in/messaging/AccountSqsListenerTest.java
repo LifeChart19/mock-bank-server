@@ -6,12 +6,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.sqs.model.Message;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class AccountSqsListenerTest {
 
     @Mock
@@ -23,13 +27,6 @@ class AccountSqsListenerTest {
 
     @InjectMocks
     private AccountSqsListener listener;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        // queueUrl @Value 주입 문제는 ReflectionTestUtils로 우회 가능 (Spring Test 있을 때)
-        // org.springframework.test.util.ReflectionTestUtils.setField(listener, "queueUrl", "mock-url");
-    }
 
     @Test
     @DisplayName("정상 메시지 파싱 및 계좌 생성")
@@ -60,8 +57,8 @@ class AccountSqsListenerTest {
         var innerJson = outerNode.get("Message").asText();
         var innerNode = new ObjectMapper().readTree(innerJson);
 
-        when(objectMapper.readTree(wrapped)).thenReturn(outerNode);
-        when(objectMapper.readTree(innerJson)).thenReturn(innerNode);
+        given(objectMapper.readTree(wrapped)).willReturn(outerNode);
+        given(objectMapper.readTree(innerJson)).willReturn(innerNode);
 
         // when
         listener.handleMessage(message);

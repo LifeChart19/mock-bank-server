@@ -20,7 +20,7 @@ public class Account {
     @Column(nullable = false)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String accountNumber; // 고유 계좌 번호
 
     @Column(name = "user_id", unique = true, nullable = false)
