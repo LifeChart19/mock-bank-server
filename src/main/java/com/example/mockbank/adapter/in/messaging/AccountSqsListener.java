@@ -7,12 +7,14 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
+import java.time.Duration;
 import java.util.concurrent.Executors;
 
 @Slf4j
@@ -23,6 +25,7 @@ public class AccountSqsListener {
     private final SqsClient sqsClient;
     private final ObjectMapper objectMapper;
     private final AccountService accountService;
+    private final StringRedisTemplate redisTemplate;
 
     @Value("${aws.url.sqs.account}")
     private String queueUrl; // application.properties에 있는 SQS 큐 URL
@@ -43,12 +46,21 @@ public class AccountSqsListener {
                     );
 
                     for (Message message : response.messages()) {
+                        String eventKey = "account-event:" + message.messageId();
                         try {
+                            if (Boolean.TRUE.equals(redisTemplate.hasKey(eventKey))) {
+                                log.info("[AccountSqsListener] 중복 메시지 수신됨: {}", eventKey);
+                                continue;
+                            }
+
                             handleMessage(message);
+
+                            redisTemplate.opsForValue().set(eventKey, "processed", Duration.ofHours(1));
+
+                            deleteMessage(message); // 성공 시 삭제
                         } catch (Exception e) {
                             log.error("계좌 생성 메시지 처리 실패: {}", e.getMessage(), e);
-                        } finally {
-                            deleteMessage(message);
+                            // deleteMessage 호출 안 함 → SQS가 재시도
                         }
                     }
                 } catch (Exception e) {
@@ -71,15 +83,15 @@ public class AccountSqsListener {
 
             AccountCreateRequest req = new AccountCreateRequest();
             req.setUserId(event.get("userId").asLong());
-            req.setUserName(event.has("userName") ? event.get("userName").asText() : null); // <- userName 세팅!
+            req.setUserName(event.has("userName") ? event.get("userName").asText() : null);
             req.setAccountNumber(generateAccountNumber());
 
-            // 계좌 생성
             accountService.createAccount(req);
 
             log.info("[AccountSqsListener] 계좌 생성 완료 for userId={}", req.getUserId());
         } catch (Exception e) {
             log.error("메시지 파싱/계좌생성 실패: {}", e.getMessage(), e);
+            throw new RuntimeException("메시지 처리 실패", e);
         }
     }
 
