@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.concurrent.Executors;
 
@@ -85,6 +86,11 @@ public class AccountSqsListener {
             req.setUserId(event.get("userId").asLong());
             req.setUserName(event.has("userName") ? event.get("userName").asText() : null);
             req.setAccountNumber(generateAccountNumber());
+            if (event.has("salary") && !event.get("salary").isNull()) {
+                req.setSalary(new BigDecimal(event.get("salary").asText()));
+            } else {
+                req.setSalary(null);
+            }
 
             accountService.createAccount(req);
 
