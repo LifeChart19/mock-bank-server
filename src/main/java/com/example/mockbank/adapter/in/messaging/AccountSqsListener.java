@@ -24,7 +24,7 @@ public class AccountSqsListener {
     private final ObjectMapper objectMapper;
     private final AccountService accountService;
 
-    @Value("${aws.url.sqs.notification}")
+    @Value("${aws.url.sqs.account}")
     private String queueUrl; // application.properties에 있는 SQS 큐 URL
 
     @PostConstruct
