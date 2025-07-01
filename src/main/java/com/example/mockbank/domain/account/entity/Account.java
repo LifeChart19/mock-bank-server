@@ -29,8 +29,12 @@ public class Account {
     @Column(nullable = false)
     private String userName;
 
+    @Setter
     @Column(nullable = false)
     private BigDecimal balance;
+
+    @Column(nullable = true)
+    private BigDecimal salary;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -41,6 +45,7 @@ public class Account {
     @Builder.Default
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Transaction> transactions = new ArrayList<>();
+
 
     public void deposit(BigDecimal amount) {
         this.balance = this.balance.add(amount);
