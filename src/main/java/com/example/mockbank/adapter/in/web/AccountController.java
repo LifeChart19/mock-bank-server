@@ -67,6 +67,19 @@ public class AccountController {
                 .body(ApiResponse.onSuccess(SuccessCode.GET_TRANSACTIONS_SUCCESS, accountService.getTransactions(userId)));
     }
 
+    @PostMapping("/{userId}/transactions/stats")
+    public ApiResponse<TransactionStatResponse> getTransactionStats(
+            @PathVariable Long userId,
+            @RequestBody TransactionStatRequest request
+    ) {
+        TransactionStatResponse resp = accountService.getTransactionStats(
+                userId,
+                request.getStartYM(),
+                request.getEndYM()
+        );
+        return ApiResponse.onSuccess(SuccessCode.GET_TRANSACTIONS_STATS_SUCCESS, resp);
+    }
+
     private void validateAuthorizationHeader(String authorization) {
         if (authorization == null || !authorization.startsWith("Bearer ")) {
             throw new CustomException(ErrorCode.UNAUTHORIZED);

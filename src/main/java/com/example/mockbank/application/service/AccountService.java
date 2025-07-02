@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
@@ -206,6 +207,41 @@ public class AccountService {
                 .sorted(Comparator.comparing(Transaction::getCreatedAt).reversed())
                 .map(TransactionResponse::from)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public TransactionStatResponse getTransactionStats(Long userId, YearMonth startYm, YearMonth endYm) {
+        Account account = accountRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
+
+
+        // 1. 거래 내역 필터링
+        List<Transaction> txs = account.getTransactions().stream()
+                .filter(tx -> {
+                    java.time.YearMonth ym = java.time.YearMonth.from(tx.getCreatedAt());
+                    return (ym.compareTo(startYm) >= 0 && ym.compareTo(endYm) <= 0);
+                }).toList();
+
+        // 2. 월별로 분리
+        int monthCount = endYm.compareTo(startYm) + 1;
+
+        // 3. 합계/평균 계산
+        BigDecimal totalIncome = BigDecimal.ZERO;
+        BigDecimal totalExpense = BigDecimal.ZERO;
+        for (Transaction tx : txs) {
+            if (tx.getType() == TransactionType.DEPOSIT) totalIncome = totalIncome.add(tx.getAmount());
+            else if (tx.getType() == TransactionType.WITHDRAWAL) totalExpense = totalExpense.add(tx.getAmount());
+        }
+
+        BigDecimal avgIncome = (monthCount > 0) ? totalIncome.divide(BigDecimal.valueOf(monthCount), 0, BigDecimal.ROUND_DOWN) : BigDecimal.ZERO;
+        BigDecimal avgExpense = (monthCount > 0) ? totalExpense.divide(BigDecimal.valueOf(monthCount), 0, BigDecimal.ROUND_DOWN) : BigDecimal.ZERO;
+
+        return TransactionStatResponse.builder()
+                .totalIncome(totalIncome)
+                .totalExpense(totalExpense)
+                .avgMonthlyIncome(avgIncome)
+                .avgMonthlyExpense(avgExpense)
+                .build();
     }
 
     public boolean existsByAccountNumber(String accountNumber) {
