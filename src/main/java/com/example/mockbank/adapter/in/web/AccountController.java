@@ -46,22 +46,14 @@ public class AccountController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<ApiResponse<AccountResponse>> getAccount(
-            @PathVariable Long userId,
-            @RequestHeader(value = "Authorization", required = false) String authorization
-    ) {
-        validateAuthorizationHeader(authorization);
+    public ResponseEntity<ApiResponse<AccountResponse>> getAccount(@PathVariable Long userId) {
         return ResponseEntity
                 .status(SuccessCode.GET_ACCOUNT_SUCCESS.getStatus())
                 .body(ApiResponse.onSuccess(SuccessCode.GET_ACCOUNT_SUCCESS, accountService.getAccount(userId)));
     }
 
     @GetMapping("/{userId}/transactions")
-    public ResponseEntity<ApiResponse<List<TransactionResponse>>> getTransactions(
-            @PathVariable Long userId,
-            @RequestHeader(value = "Authorization", required = false) String authorization
-    ) {
-        validateAuthorizationHeader(authorization);
+    public ResponseEntity<ApiResponse<List<TransactionResponse>>> getTransactions(@PathVariable Long userId) {
         return ResponseEntity
                 .status(SuccessCode.GET_TRANSACTIONS_SUCCESS.getStatus())
                 .body(ApiResponse.onSuccess(SuccessCode.GET_TRANSACTIONS_SUCCESS, accountService.getTransactions(userId)));
@@ -79,11 +71,4 @@ public class AccountController {
         );
         return ApiResponse.onSuccess(SuccessCode.GET_TRANSACTIONS_STATS_SUCCESS, resp);
     }
-
-    private void validateAuthorizationHeader(String authorization) {
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-            throw new CustomException(ErrorCode.UNAUTHORIZED);
-        }
-    }
-
 }
