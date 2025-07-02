@@ -10,6 +10,9 @@ import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.sqs.model.Message;
 
+import java.math.BigDecimal;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -17,37 +20,52 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AccountSqsListenerTest {
 
-    @Mock
-    private AccountService accountService;
-    @Mock
-    private ObjectMapper objectMapper;
-    @Mock
-    private software.amazon.awssdk.services.sqs.SqsClient sqsClient;
+    @Mock private AccountService accountService;
+    @Mock private ObjectMapper objectMapper;
+    @Mock private software.amazon.awssdk.services.sqs.SqsClient sqsClient;
 
-    @InjectMocks
-    private AccountSqsListener listener;
+    @InjectMocks private AccountSqsListener listener;
 
     @Test
-    @DisplayName("정상 메시지 파싱 및 계좌 생성")
+    @DisplayName("정상 메시지 파싱 및 계좌 생성 - salary 없음")
     void handleMessage_success() throws Exception {
-        // given
         String json = "{\"userId\":10,\"userName\":\"테스터10\"}";
         Message message = Message.builder().body(json).build();
 
         var jsonNode = new ObjectMapper().readTree(json);
         given(objectMapper.readTree(json)).willReturn(jsonNode);
+        given(accountService.existsByAccountNumber(anyString())).willReturn(false);
 
-        // when
         listener.handleMessage(message);
 
-        // then
-        verify(accountService).createAccount(any(AccountCreateRequest.class));
+        ArgumentCaptor<AccountCreateRequest> captor = ArgumentCaptor.forClass(AccountCreateRequest.class);
+        verify(accountService).createAccount(captor.capture());
+        assertEquals(10L, captor.getValue().getUserId());
+        assertEquals("테스터10", captor.getValue().getUserName());
+        assertNull(captor.getValue().getSalary());
+        assertNotNull(captor.getValue().getAccountNumber());
+    }
+
+    @Test
+    @DisplayName("정상 메시지 파싱 및 계좌 생성 - salary 있음")
+    void handleMessage_salaryExists() throws Exception {
+        String json = "{\"userId\":15,\"userName\":\"테스터15\",\"salary\":12345.67}";
+        Message message = Message.builder().body(json).build();
+
+        var jsonNode = new ObjectMapper().readTree(json);
+        given(objectMapper.readTree(json)).willReturn(jsonNode);
+        given(accountService.existsByAccountNumber(anyString())).willReturn(false);
+
+        listener.handleMessage(message);
+
+        ArgumentCaptor<AccountCreateRequest> captor = ArgumentCaptor.forClass(AccountCreateRequest.class);
+        verify(accountService).createAccount(captor.capture());
+        assertEquals(new BigDecimal("12345.67"), captor.getValue().getSalary());
     }
 
     @Test
     @DisplayName("SNS 래핑 메시지 파싱")
     void handleMessage_snsWrappedMessage() throws Exception {
-        // given
         String wrapped = "{\"Type\":\"Notification\",\"Message\":\"{\\\"userId\\\":20,\\\"userName\\\":\\\"테스터20\\\"}\"}";
         Message message = Message.builder().body(wrapped).build();
 
@@ -57,11 +75,10 @@ class AccountSqsListenerTest {
 
         given(objectMapper.readTree(wrapped)).willReturn(outerNode);
         given(objectMapper.readTree(innerJson)).willReturn(innerNode);
+        given(accountService.existsByAccountNumber(anyString())).willReturn(false);
 
-        // when
         listener.handleMessage(message);
 
-        // then
         verify(accountService).createAccount(any(AccountCreateRequest.class));
     }
 
@@ -73,24 +90,23 @@ class AccountSqsListenerTest {
         var jsonNode = new ObjectMapper().readTree(json);
 
         given(objectMapper.readTree(json)).willReturn(jsonNode);
+        given(accountService.existsByAccountNumber(anyString())).willReturn(false);
 
         listener.handleMessage(message);
 
-        // then: userName은 null로 createAccount 호출됨
         ArgumentCaptor<AccountCreateRequest> captor = ArgumentCaptor.forClass(AccountCreateRequest.class);
         verify(accountService).createAccount(captor.capture());
-        assert captor.getValue().getUserName() == null;
+        assertNull(captor.getValue().getUserName());
     }
 
     @Test
     @DisplayName("파싱 에러 시 예외 처리")
     void handleMessage_jsonParseError() throws Exception {
-        // given
         Message message = Message.builder().body("invalid-json").build();
         given(objectMapper.readTree(any(String.class))).willThrow(new RuntimeException("파싱에러"));
 
-        // when/then: 예외 발생해도 서비스 죽지 않음, 로그만 남음
-        listener.handleMessage(message);
+        assertThrows(RuntimeException.class, () -> listener.handleMessage(message));
         verify(accountService, never()).createAccount(any());
     }
 }
+
