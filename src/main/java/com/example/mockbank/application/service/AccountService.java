@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
@@ -225,7 +226,7 @@ public class AccountService {
                 }).toList();
 
         // 2. 월별로 분리
-        int monthCount = endYm.compareTo(startYm) + 1;
+        int monthCount = (int) ChronoUnit.MONTHS.between(startYm, endYm) + 1;
 
         // 3. 합계/평균 계산
         BigDecimal totalIncome = BigDecimal.ZERO;
