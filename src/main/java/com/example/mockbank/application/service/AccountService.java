@@ -144,8 +144,7 @@ public class AccountService {
 
     @Transactional
     public AccountResponse deposit(Long userId, DepositRequest request) {
-        Account account = accountRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
+        Account account = accountRepository.getOrThrowByUserId(userId);
 
         account.deposit(request.getAmount());
         accountRepository.save(account);
@@ -165,8 +164,7 @@ public class AccountService {
 
     @Transactional
     public AccountResponse withdraw(Long userId, WithdrawRequest request) {
-        Account account = accountRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
+        Account account = accountRepository.getOrThrowByUserId(userId);
 
         BigDecimal withdrawAmount = request.getAmount();
         if (account.getBalance().compareTo(withdrawAmount) < 0) {
@@ -192,15 +190,13 @@ public class AccountService {
 
     @Transactional(readOnly = true)
     public AccountResponse getAccount(Long userId) {
-        Account account = accountRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
+        Account account = accountRepository.getOrThrowByUserId(userId);
         return AccountResponse.from(account);
     }
 
     @Transactional(readOnly = true)
     public List<TransactionResponse> getTransactions(Long userId) {
-        Account account = accountRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
+        Account account = accountRepository.getOrThrowByUserId(userId);
 
         return account.getTransactions().stream()
                 .sorted(Comparator.comparing(Transaction::getCreatedAt).reversed())
@@ -219,8 +215,7 @@ public class AccountService {
             throw new CustomException(ErrorCode.INVALID_DATE_RANGE);
         }
 
-        Account account = accountRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
+        Account account = accountRepository.getOrThrowByUserId(userId);
 
         // 1. 거래 내역 필터링
         List<Transaction> txs = account.getTransactions().stream()
