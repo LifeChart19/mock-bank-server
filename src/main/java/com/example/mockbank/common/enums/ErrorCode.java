@@ -14,7 +14,8 @@ public enum ErrorCode {
     INVALID_AMOUNT(HttpStatus.BAD_REQUEST, "잘못된 금액입니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증이 필요합니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "예상치 못한 예외입니다."),
-    INVALID_DATE_RANGE(HttpStatus.UNAUTHORIZED, "날짜 범위 설정이 잘못 되었습니다.");
+    INVALID_DATE_REQUEST(HttpStatus.UNAUTHORIZED, "시작 월, 종료 월 을 입력해주세요."),
+    INVALID_DATE_RANGE(HttpStatus.UNAUTHORIZED, "시작 월이 종료 월 이후이입니다.");
     private final HttpStatus status;
     private final String message;
 }

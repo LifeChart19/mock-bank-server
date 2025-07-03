@@ -211,9 +211,17 @@ public class AccountService {
 
     @Transactional(readOnly = true)
     public TransactionStatResponse getTransactionStats(Long userId, YearMonth startYm, YearMonth endYm) {
+
+        if (startYm == null || endYm == null) {
+            throw new CustomException(ErrorCode.INVALID_DATE_REQUEST);
+        }
+
+        if (startYm.isAfter(endYm)) {
+            throw new CustomException(ErrorCode.INVALID_DATE_RANGE);
+        }
+
         Account account = accountRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ACCOUNT_NOT_FOUND));
-
 
         // 1. 거래 내역 필터링
         List<Transaction> txs = account.getTransactions().stream()
