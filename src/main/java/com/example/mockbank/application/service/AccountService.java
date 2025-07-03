@@ -35,7 +35,6 @@ public class AccountService {
         boolean isSalaryRandom = false;
         if (salary == null) {
             isSalaryRandom = true;
-            salary = null; // 계좌에 null 저장 (거래내역은 별도로 랜덤생성)
         }
 
         Account account = Account.builder()
@@ -50,7 +49,7 @@ public class AccountService {
         account = accountRepository.save(account);
 
         List<Transaction> transactions = generateInitialTransactions(account, salary, isSalaryRandom);
-        for (Transaction tx : transactions) transactionRepository.save(tx);
+        transactionRepository.saveAll(transactions);
 
         // balance 재계산 (최신 거래까지)
         BigDecimal balance = BigDecimal.ZERO;
