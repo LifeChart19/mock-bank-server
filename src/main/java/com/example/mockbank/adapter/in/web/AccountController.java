@@ -64,6 +64,9 @@ public class AccountController {
             @PathVariable Long userId,
             @RequestBody TransactionStatRequest request
     ) {
+        if (request.getStartYM().isAfter(request.getEndYM())) {
+            throw new CustomException(ErrorCode.INVALID_DATE_RANGE);
+        }
         TransactionStatResponse resp = accountService.getTransactionStats(
                 userId,
                 request.getStartYM(),
