@@ -10,9 +10,11 @@ import com.example.mockbank.domain.account.repository.TransactionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -22,7 +24,9 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
 
     @Mock
@@ -34,34 +38,45 @@ class AccountServiceTest {
     @InjectMocks
     private AccountService accountService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-
     @Test
-    @DisplayName("계좌 생성 성공")
-    void createAccount_success() {
-        // given
+    @DisplayName("계좌 생성 성공 - salary null")
+    void createAccount_salaryNull_generatesRandomTransactions() {
         AccountCreateRequest request = new AccountCreateRequest();
-        request.setAccountNumber("1234567890");
-        request.setUserId(1L);
-        request.setUserName("테스터");
+        request.setAccountNumber("9876543210");
+        request.setUserId(2L);
+        request.setUserName("김샘플");
+        request.setSalary(null);
 
         given(accountRepository.save(any(Account.class))).willAnswer(invocation -> invocation.getArgument(0));
+        given(transactionRepository.save(any(Transaction.class))).willAnswer(invocation -> invocation.getArgument(0));
 
-        // when
         AccountResponse response = accountService.createAccount(request);
 
-        // then
-        assertThat(response.getUserId()).isEqualTo(1L);
-        assertThat(response.getAccountNumber()).isEqualTo("1234567890");
+        assertThat(response.getUserId()).isEqualTo(2L);
+        verify(transactionRepository, atLeast(10)).save(any(Transaction.class));
     }
 
     @Test
-    @DisplayName("입금 성공")
-    void deposit_success() {
-        // given
+    @DisplayName("계좌 생성 성공 - salary 지정")
+    void createAccount_salary_given() {
+        AccountCreateRequest request = new AccountCreateRequest();
+        request.setAccountNumber("1122334455");
+        request.setUserId(3L);
+        request.setUserName("고정급여");
+        request.setSalary(new BigDecimal("5000000"));
+
+        given(accountRepository.save(any(Account.class))).willAnswer(invocation -> invocation.getArgument(0));
+        given(transactionRepository.save(any(Transaction.class))).willAnswer(invocation -> invocation.getArgument(0));
+
+        AccountResponse response = accountService.createAccount(request);
+
+        assertThat(response.getUserId()).isEqualTo(3L);
+        verify(transactionRepository, atLeast(10)).save(any(Transaction.class));
+    }
+
+    @Test
+    @DisplayName("입금 성공 - 거래내역 저장")
+    void deposit_success_createsTransaction() {
         DepositRequest request = new DepositRequest();
         request.setAmount(BigDecimal.valueOf(10000L));
         request.setMemo("입금메모");
@@ -77,12 +92,38 @@ class AccountServiceTest {
 
         given(accountRepository.findByUserId(1L)).willReturn(Optional.of(account));
         given(accountRepository.save(any(Account.class))).willReturn(account);
+        given(transactionRepository.save(any(Transaction.class))).willAnswer(invocation -> invocation.getArgument(0));
 
-        // when
         AccountResponse response = accountService.deposit(1L, request);
 
-        // then
         assertThat(response.getBalance()).isEqualTo(new BigDecimal("10000"));
+        verify(transactionRepository, times(1)).save(any(Transaction.class));
+    }
+
+    @Test
+    @DisplayName("출금 성공 - 거래내역 저장")
+    void withdraw_success_createsTransaction() {
+        WithdrawRequest request = new WithdrawRequest();
+        request.setAmount(BigDecimal.valueOf(5000L));
+        request.setMemo("출금메모");
+
+        Account account = Account.builder()
+                .userId(1L)
+                .userName("테스터")
+                .accountNumber("1234567890")
+                .balance(BigDecimal.valueOf(10000))
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        given(accountRepository.findByUserId(1L)).willReturn(Optional.of(account));
+        given(accountRepository.save(any(Account.class))).willReturn(account);
+        given(transactionRepository.save(any(Transaction.class))).willAnswer(invocation -> invocation.getArgument(0));
+
+        AccountResponse response = accountService.withdraw(1L, request);
+
+        assertThat(response.getBalance()).isEqualTo(new BigDecimal("5000"));
+        verify(transactionRepository, times(1)).save(any(Transaction.class));
     }
 
     @Test

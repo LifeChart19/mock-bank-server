@@ -32,6 +32,9 @@ public class Account {
     @Column(nullable = false)
     private BigDecimal balance;
 
+    @Column(nullable = true)
+    private BigDecimal salary;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
@@ -41,6 +44,7 @@ public class Account {
     @Builder.Default
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Transaction> transactions = new ArrayList<>();
+
 
     public void deposit(BigDecimal amount) {
         this.balance = this.balance.add(amount);
@@ -52,5 +56,8 @@ public class Account {
         this.updatedAt = LocalDateTime.now();
     }
 
-
+    public void updateBalance(BigDecimal newBalance) {
+        this.balance = newBalance;
+        this.updatedAt = LocalDateTime.now();
+    }
 }
