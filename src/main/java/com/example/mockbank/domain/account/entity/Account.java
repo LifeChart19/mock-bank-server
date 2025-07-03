@@ -29,7 +29,6 @@ public class Account {
     @Column(nullable = false)
     private String userName;
 
-    @Setter
     @Column(nullable = false)
     private BigDecimal balance;
 
@@ -54,6 +53,11 @@ public class Account {
 
     public void withdraw(BigDecimal amount) {
         this.balance = this.balance.subtract(amount);
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void updateBalance(BigDecimal newBalance) {
+        this.balance = newBalance;
         this.updatedAt = LocalDateTime.now();
     }
 }

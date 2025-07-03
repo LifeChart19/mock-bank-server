@@ -58,7 +58,7 @@ public class AccountService {
             else balance = balance.subtract(tx.getAmount());
             if (balance.compareTo(BigDecimal.ZERO) < 0) balance = BigDecimal.ZERO;
         }
-        account.setBalance(balance);
+        account.updateBalance(balance);
         accountRepository.save(account);
 
         return AccountResponse.from(account);

@@ -22,8 +22,6 @@ class AccountSqsListenerTest {
 
     @Mock private AccountService accountService;
     @Mock private ObjectMapper objectMapper;
-    @Mock private software.amazon.awssdk.services.sqs.SqsClient sqsClient;
-
     @InjectMocks private AccountSqsListener listener;
 
     @Test
